@@ -2,527 +2,328 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#17251f">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#10120f">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Daymark">
-  <meta name="description" content="Личный планировщик задач на день и неделю.">
-  <link rel="manifest" href="./manifest.json">
-  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
-  <title>Daymark — планировщик</title>
+  <meta name="apple-mobile-web-app-title" content="SNAKE">
+  <title>SNAKE — Аркада</title>
   <style>
     :root {
-      color-scheme: light;
-      --ink: #17251f;
-      --muted: #78817a;
-      --paper: #f5f5ef;
-      --card: #ffffff;
-      --line: #e7e9e1;
-      --lime: #d4f36a;
-      --lime-dark: #a7cf32;
-      --mint: #eaf4df;
-      --coral: #f1a58c;
-      --shadow: 0 12px 32px rgba(23, 37, 31, .055);
+      color-scheme: dark;
+      --bg: #10120f;
+      --panel: #191d17;
+      --panel-2: #20251d;
+      --line: #343d2d;
+      --text: #f1f4e9;
+      --muted: #9aa391;
+      --lime: #c4f36b;
+      --lime-dark: #8fb73e;
+      --red: #ff6d5e;
       --radius: 22px;
     }
-    * { box-sizing: border-box; }
-    html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      background: var(--paper);
-      color: var(--ink);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      -webkit-font-smoothing: antialiased;
-      padding-bottom: calc(24px + env(safe-area-inset-bottom));
-    }
-    button, input, select, textarea { font: inherit; }
-    button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
-    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid rgba(167, 207, 50, .65); outline-offset: 2px; }
-    .app { max-width: 1020px; margin: 0 auto; padding: 20px 20px 0; }
-    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 22px; }
-    .brand { display: flex; align-items: center; gap: 11px; font-weight: 850; letter-spacing: -.04em; font-size: 19px; }
-    .brand-mark { width: 37px; height: 37px; border-radius: 13px; display: grid; place-items: center; color: var(--ink); background: var(--lime); font-weight: 950; font-size: 20px; box-shadow: inset 0 -3px 0 rgba(23,37,31,.08); }
-    .top-date { color: var(--muted); font-size: 12px; font-weight: 650; text-align: right; }
-    .hero { background: var(--ink); color: white; border-radius: 28px; padding: 27px 28px 25px; position: relative; overflow: hidden; box-shadow: var(--shadow); }
-    .hero::after { content: ""; position: absolute; width: 230px; height: 230px; border: 1px solid rgba(212,243,106,.20); border-radius: 50%; right: -72px; top: -100px; box-shadow: 0 0 0 25px rgba(212,243,106,.035), 0 0 0 55px rgba(212,243,106,.025); pointer-events: none; }
-    .eyebrow { color: var(--lime); text-transform: uppercase; letter-spacing: .15em; font-size: 10px; font-weight: 850; margin: 0 0 12px; }
-    .hero h1 { font-size: clamp(28px, 5vw, 43px); letter-spacing: -.055em; line-height: 1.04; max-width: 520px; margin: 0; font-weight: 830; }
-    .hero-bottom { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-top: 22px; position: relative; z-index: 1; }
-    .hero-sub { color: #b9c3ba; font-size: 13px; line-height: 1.5; margin: 0; max-width: 430px; }
-    .hero-stat { min-width: 100px; text-align: right; }
-    .hero-stat strong { display: block; color: var(--lime); font-size: 27px; letter-spacing: -.06em; line-height: 1.1; }
-    .hero-stat span { display: block; color: #b9c3ba; font-size: 10px; margin-top: 5px; }
-    .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 22px 0 18px; }
-    .tabs { background: #e9ebe3; border-radius: 14px; padding: 4px; display: flex; gap: 3px; }
-    .tab { border: 0; background: transparent; color: #6c766e; padding: 10px 17px; border-radius: 11px; font-weight: 750; font-size: 13px; }
-    .tab.active { color: white; background: var(--ink); box-shadow: 0 3px 8px rgba(23,37,31,.12); }
-    .today-button { background: white; border: 1px solid var(--line); color: var(--ink); padding: 10px 14px; border-radius: 12px; font-weight: 750; font-size: 12px; }
-    .view { display: none; }
-    .view.active { display: block; }
-    .section-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin: 0 0 14px; }
-    .section-head h2 { font-size: 22px; letter-spacing: -.045em; margin: 0; }
-    .section-head p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
-    .date-controls { display: flex; align-items: center; gap: 7px; }
-    .icon-button { width: 36px; height: 36px; display: grid; place-items: center; background: white; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); font-size: 18px; }
-    .progress-card, .panel { background: var(--card); border: 1px solid rgba(231,233,225,.8); border-radius: var(--radius); box-shadow: var(--shadow); }
-    .progress-card { padding: 17px 19px; margin-bottom: 15px; }
-    .progress-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
-    .progress-top strong { font-size: 13px; }
-    .progress-top span { color: var(--muted); font-size: 12px; font-weight: 700; }
-    .progress-track { height: 7px; background: #edf0e8; overflow: hidden; border-radius: 99px; }
-    .progress-fill { height: 100%; width: 0; background: var(--lime-dark); border-radius: 99px; transition: width .2s ease; }
-    .day-layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(270px, .85fr); align-items: start; gap: 15px; }
-    .panel { padding: 19px; }
-    .panel-title-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px; }
-    .panel h3 { margin: 0; font-size: 15px; letter-spacing: -.02em; }
-    .small-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .11em; font-weight: 850; }
-    .task-list { display: grid; gap: 9px; }
-    .task { display: grid; grid-template-columns: 22px minmax(0, 1fr) 32px; align-items: start; gap: 10px; border: 1px solid var(--line); border-radius: 15px; padding: 12px 10px 12px 12px; background: #fff; transition: background .15s, opacity .15s; }
-    .task.done { background: #fafbf7; }
-    .check { appearance: none; -webkit-appearance: none; margin: 1px 0 0; width: 21px; height: 21px; border: 1.5px solid #c9d0c5; border-radius: 7px; background: white; display: grid; place-items: center; }
-    .check:checked { background: var(--lime); border-color: var(--lime-dark); }
-    .check:checked::after { content: "✓"; color: var(--ink); font-size: 14px; font-weight: 950; }
-    .task-title { font-size: 13px; font-weight: 740; line-height: 1.4; overflow-wrap: anywhere; }
-    .task.done .task-title { text-decoration: line-through; color: #929990; }
-    .task-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 7px; }
-    .chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 7px; border-radius: 7px; background: #f1f3ed; color: #647065; font-size: 10px; font-weight: 700; }
-    .chip.time { background: #eff4e5; color: #536b24; }
-    .chip.important { background: #fff0e9; color: #a45137; }
-    .task-actions { display: flex; flex-direction: column; gap: 4px; }
-    .tiny-button { width: 30px; height: 30px; border: 0; border-radius: 9px; background: transparent; color: #8b948b; display: grid; place-items: center; font-size: 15px; }
-    .tiny-button:hover { background: #f1f3ed; color: var(--ink); }
-    .empty { padding: 26px 15px; border: 1px dashed #d9ded3; border-radius: 15px; text-align: center; }
-    .empty-mark { width: 42px; height: 42px; margin: 0 auto 10px; border-radius: 14px; background: var(--mint); display: grid; place-items: center; font-size: 20px; }
-    .empty strong { display: block; font-size: 13px; }
-    .empty p { color: var(--muted); font-size: 11px; margin: 7px 0 0; }
-    .add-form { display: grid; gap: 11px; }
-    .field-label { display: block; font-size: 11px; color: #677167; font-weight: 750; margin: 0 0 6px 2px; }
-    .input, .select, .textarea { width: 100%; border: 1px solid #e1e5db; border-radius: 12px; padding: 12px 12px; background: #fcfcf9; color: var(--ink); font-size: 13px; min-width: 0; }
-    .input::placeholder, .textarea::placeholder { color: #a5aca2; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
-    .primary-button { width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; padding: 13px 15px; background: var(--lime); color: var(--ink); border: 0; border-radius: 12px; font-size: 13px; font-weight: 850; transition: transform .15s, background .15s; }
-    .primary-button:active { transform: scale(.985); background: #c8ed57; }
-    .note-panel { margin-top: 15px; }
-    .note-panel .textarea { min-height: 94px; resize: vertical; line-height: 1.5; }
-    .save-hint { font-size: 10px; color: #929a91; margin: 8px 1px 0; }
-    .week-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
-    .summary-tile { border-radius: 17px; background: white; border: 1px solid var(--line); padding: 15px; }
-    .summary-tile strong { display: block; font-size: 23px; letter-spacing: -.05em; }
-    .summary-tile span { display: block; color: var(--muted); font-size: 10px; margin-top: 4px; }
-    .week-list { display: grid; gap: 10px; }
-    .week-day { display: grid; grid-template-columns: 68px minmax(0, 1fr) auto; align-items: start; gap: 13px; padding: 15px; background: white; border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); }
-    .week-day.is-selected { border-color: #c1df75; box-shadow: 0 0 0 2px rgba(212,243,106,.25), var(--shadow); }
-    .day-label { border-radius: 13px; background: #f2f4ed; padding: 10px 5px; text-align: center; }
-    .day-label .dow { display: block; font-size: 9px; text-transform: uppercase; color: #788277; font-weight: 850; letter-spacing: .08em; }
-    .day-label .dom { display: block; font-size: 22px; font-weight: 850; letter-spacing: -.05em; margin-top: 2px; }
-    .day-label .month { display: block; color: #879087; font-size: 9px; margin-top: 1px; }
-    .week-day.is-today .day-label { background: var(--lime); }
-    .week-day.is-today .day-label .dow, .week-day.is-today .day-label .month { color: #475628; }
-    .week-content { min-width: 0; }
-    .week-content-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 2px 0 8px; }
-    .week-content-head strong { font-size: 13px; }
-    .week-count { color: var(--muted); font-size: 10px; white-space: nowrap; }
-    .week-mini-list { display: grid; gap: 7px; }
-    .week-mini-task { display: flex; align-items: baseline; gap: 7px; font-size: 11px; color: #566157; min-width: 0; }
-    .week-mini-task::before { content: ""; flex: 0 0 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--lime-dark); position: relative; top: -1px; }
-    .week-mini-task.done { color: #9aa198; text-decoration: line-through; }
-    .week-mini-task.done::before { background: #c7cdc2; }
-    .week-mini-task span { overflow-wrap: anywhere; }
-    .week-empty { color: #a0a79e; font-size: 11px; margin: 4px 0 2px; }
-    .week-add { border: 1px solid #e7ebdf; border-radius: 9px; background: white; padding: 7px 9px; color: #64705f; font-size: 11px; font-weight: 800; white-space: nowrap; }
-    .week-add:active { background: var(--mint); }
-    .week-progress { height: 4px; background: #edf0e8; border-radius: 99px; overflow: hidden; margin-top: 10px; }
-    .week-progress span { display: block; height: 100%; background: var(--lime-dark); border-radius: inherit; }
-    .footer { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding: 24px 3px 5px; color: #969e94; font-size: 10px; }
-    .footer strong { color: #6d786d; }
-    .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translate(-50%, 20px); opacity: 0; pointer-events: none; background: var(--ink); color: white; border-radius: 12px; padding: 11px 16px; font-size: 12px; font-weight: 700; box-shadow: 0 8px 25px rgba(0,0,0,.2); transition: .2s ease; z-index: 20; max-width: calc(100% - 32px); text-align: center; }
-    .toast.show { opacity: 1; transform: translate(-50%, 0); }
-    .hidden { display: none !important; }
-    @media (max-width: 690px) {
-      .app { padding: 14px 13px 0; }
-      .topbar { margin-bottom: 15px; }
-      .hero { border-radius: 23px; padding: 23px 20px 20px; }
-      .hero h1 { font-size: 31px; }
-      .hero-bottom { margin-top: 19px; }
-      .hero-stat { min-width: 75px; }
-      .hero-stat strong { font-size: 24px; }
-      .toolbar { margin: 17px 0 16px; }
-      .tab { padding: 10px 14px; }
-      .day-layout { grid-template-columns: 1fr; }
-      .panel { padding: 16px; }
-      .week-day { grid-template-columns: 55px minmax(0, 1fr); gap: 10px; padding: 11px; }
-      .week-add { grid-column: 2; justify-self: start; margin-top: -2px; }
-      .day-label .dom { font-size: 20px; }
-      .week-summary { gap: 7px; }
-      .summary-tile { padding: 12px 10px; }
-      .summary-tile strong { font-size: 21px; }
-      .summary-tile span { font-size: 9px; }
-    }
-    @media (max-width: 370px) {
-      .app { padding-left: 10px; padding-right: 10px; }
-      .hero h1 { font-size: 28px; }
-      .hero-sub { font-size: 12px; }
-      .top-date { font-size: 10px; }
-      .section-head h2 { font-size: 20px; }
-      .form-grid { grid-template-columns: 1fr; }
-      .week-count { display: none; }
-    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { overscroll-behavior: none; }
+    button { font: inherit; cursor: pointer; border: 0; color: inherit; }
+    .shell { width: min(100%, 580px); margin: 0 auto; padding: max(18px, env(safe-area-inset-top)) 18px max(22px, env(safe-area-inset-bottom)); }
+    header { display:flex; justify-content:space-between; align-items:center; gap:12px; margin: 8px 2px 24px; }
+    .brand { display:flex; align-items:center; gap:11px; }
+    .brand-mark { width:42px; height:42px; border-radius:14px; display:grid; place-items:center; background:var(--lime); color:#14180e; font-size:23px; box-shadow:0 5px 22px #c4f36b1b; }
+    .brand-title { margin:0; font-size:19px; font-weight:900; letter-spacing:.16em; }
+    .brand-sub { margin:4px 0 0; color:var(--muted); font-size:10px; letter-spacing:.18em; text-transform:uppercase; }
+    .sound-btn { width:42px; height:42px; border:1px solid var(--line); background:var(--panel); border-radius:14px; color:var(--muted); font-size:17px; }
+    .score-row { display:grid; grid-template-columns:1fr 1fr 1.2fr; gap:9px; margin-bottom:14px; }
+    .stat { min-width:0; background:var(--panel); border:1px solid #293026; border-radius:15px; padding:12px 13px; }
+    .stat-label { color:var(--muted); text-transform:uppercase; letter-spacing:.12em; font-size:9px; font-weight:800; }
+    .stat-value { margin-top:5px; font-size:24px; font-weight:850; line-height:1.05; font-variant-numeric:tabular-nums; }
+    .stat-value.lime { color:var(--lime); }
+    .game-frame { position:relative; overflow:hidden; padding:9px; border:1px solid #333d2d; border-radius:24px; background:#151912; box-shadow:0 18px 55px #0005; }
+    .board-wrap { position:relative; width:100%; aspect-ratio:1; overflow:hidden; border-radius:16px; background:#11150f; touch-action:none; }
+    canvas { display:block; width:100%; height:100%; touch-action:none; }
+    .overlay { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:24px; background:#0b0e0bcf; backdrop-filter:blur(5px); text-align:center; }
+    .overlay.hidden { display:none; }
+    .overlay-card { width:100%; max-width:300px; }
+    .overlay-icon { font-size:42px; margin-bottom:10px; filter:drop-shadow(0 0 20px #c4f36b30); }
+    .overlay h2 { font-size:27px; line-height:1.05; margin:0 0 10px; font-weight:900; letter-spacing:-.04em; }
+    .overlay p { margin:0 auto 22px; max-width:250px; font-size:13px; line-height:1.55; color:#adb5a4; }
+    .primary { min-height:50px; width:100%; padding:14px 18px; border-radius:15px; background:var(--lime); color:#15190f; font-size:14px; font-weight:900; box-shadow:0 7px 24px #c4f36b18; }
+    .primary:active { transform:scale(.985); }
+    .game-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:13px; }
+    .secondary { min-height:47px; padding:12px 14px; border-radius:14px; background:var(--panel); border:1px solid var(--line); font-size:13px; font-weight:750; color:#dfe5d6; }
+    .secondary:active, .sound-btn:active, .dir:active { background:#2c3523; }
+    .controls { width:190px; margin:18px auto 0; display:grid; grid-template-columns:repeat(3, 58px); grid-template-rows:repeat(2, 54px); gap:7px; justify-content:center; }
+    .dir { background:var(--panel-2); border:1px solid #35402b; border-radius:16px; color:var(--lime); font-size:21px; font-weight:900; touch-action:manipulation; box-shadow:0 4px 0 #0a0c09; }
+    .dir.up { grid-column:2; grid-row:1; }
+    .dir.left { grid-column:1; grid-row:2; }
+    .dir.down { grid-column:2; grid-row:2; }
+    .dir.right { grid-column:3; grid-row:2; }
+    .hint { margin:17px 0 0; color:#727c68; font-size:11px; line-height:1.6; text-align:center; }
+    .hint strong { color:#a7b096; font-weight:700; }
+    .footer { display:flex; justify-content:center; gap:7px; align-items:center; margin-top:19px; color:#66705e; font-size:10px; letter-spacing:.12em; text-transform:uppercase; }
+    .footer-dot { width:4px; height:4px; border-radius:50%; background:var(--lime-dark); }
+    @media (min-width:520px) { .shell { padding-top:28px; } header { margin-bottom:27px; } .controls { margin-top:17px; } }
+    @media (max-height:780px) and (max-width:520px) { .shell { padding-top:max(10px, env(safe-area-inset-top)); } header { margin-bottom:14px; } .brand-mark { width:36px;height:36px; } .stat { padding:9px 11px; } .stat-value { font-size:21px; } .controls { margin-top:12px; grid-template-rows:repeat(2,48px); } .dir { border-radius:13px; } .hint { margin-top:11px; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; } }
   </style>
 </head>
 <body>
-  <div class="app">
-    <header class="topbar">
-      <div class="brand"><div class="brand-mark">D</div><span>daymark<span style="color:#9bbd36">.</span></span></div>
-      <div class="top-date" id="topDate">ТВОЙ ПЛАН НА КАЖДЫЙ ДЕНЬ</div>
+  <main class="shell">
+    <header>
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">↗</div>
+        <div><h1 class="brand-title">SNAKE</h1><p class="brand-sub">Classic arcade · 001</p></div>
+      </div>
+      <button class="sound-btn" id="soundBtn" aria-label="Звук включён" title="Включить или выключить звук">♪</button>
     </header>
 
-    <section class="hero">
-      <p class="eyebrow">Меньше хаоса · больше движения</p>
-      <h1>Планируй неделю.<br>Делай своё.</h1>
-      <div class="hero-bottom">
-        <p class="hero-sub">Не нужно делать всё сразу.<br>Просто выбери следующий шаг.</p>
-        <div class="hero-stat"><strong id="heroDone">0/0</strong><span>задач выполнено сегодня</span></div>
-      </div>
+    <section class="score-row" aria-label="Статистика игры">
+      <div class="stat"><div class="stat-label">Счёт</div><div class="stat-value lime" id="score">000</div></div>
+      <div class="stat"><div class="stat-label">Рекорд</div><div class="stat-value" id="best">000</div></div>
+      <div class="stat"><div class="stat-label">Уровень</div><div class="stat-value" id="level">01 <span style="font-size:11px;color:var(--muted);font-weight:700">· EASY</span></div></div>
     </section>
 
-    <nav class="toolbar" aria-label="Режим планировщика">
-      <div class="tabs" role="tablist">
-        <button class="tab active" id="dayTab" type="button" role="tab" aria-selected="true">На день</button>
-        <button class="tab" id="weekTab" type="button" role="tab" aria-selected="false">На неделю</button>
-      </div>
-      <button class="today-button" id="todayBtn" type="button">Сегодня ↗</button>
-    </nav>
-
-    <section class="view active" id="dayView" aria-labelledby="dayTitle">
-      <div class="section-head">
-        <div><h2 id="dayTitle">Сегодня</h2><p id="daySubtitle">Один шаг за другим</p></div>
-        <div class="date-controls">
-          <button class="icon-button" id="prevDay" type="button" aria-label="Предыдущий день">‹</button>
-          <button class="icon-button" id="nextDay" type="button" aria-label="Следующий день">›</button>
-        </div>
-      </div>
-
-      <div class="progress-card">
-        <div class="progress-top"><strong>Прогресс дня</strong><span id="dayProgressText">0 из 0 задач</span></div>
-        <div class="progress-track"><div class="progress-fill" id="dayProgressBar"></div></div>
-      </div>
-
-      <div class="day-layout">
-        <section class="panel">
-          <div class="panel-title-row"><h3>Список задач</h3><span class="small-label" id="taskListLabel">НА СЕГОДНЯ</span></div>
-          <div class="task-list" id="taskList"></div>
-        </section>
-
-        <div>
-          <section class="panel">
-            <div class="panel-title-row"><h3>Добавить задачу</h3><span class="small-label">＋ НОВАЯ</span></div>
-            <form class="add-form" id="taskForm">
-              <div>
-                <label class="field-label" for="taskTitle">Что нужно сделать?</label>
-                <input class="input" id="taskTitle" name="title" maxlength="140" placeholder="Например, решить 5 задач по C" required autocomplete="off">
-              </div>
-              <div class="form-grid">
-                <div>
-                  <label class="field-label" for="taskCategory">Категория</label>
-                  <select class="select" id="taskCategory" name="category">
-                    <option value="study">Учёба</option>
-                    <option value="code">Программирование</option>
-                    <option value="health">Здоровье</option>
-                    <option value="personal">Личное</option>
-                    <option value="other">Другое</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="field-label" for="taskTime">Время (необязательно)</label>
-                  <input class="input" id="taskTime" name="time" type="time">
-                </div>
-              </div>
-              <div>
-                <label class="field-label" for="taskPriority">Приоритет</label>
-                <select class="select" id="taskPriority" name="priority">
-                  <option value="normal">Обычная задача</option>
-                  <option value="high">Важная задача</option>
-                </select>
-              </div>
-              <button class="primary-button" type="submit"><span>＋</span> Добавить в план</button>
-            </form>
-          </section>
-          <section class="panel note-panel">
-            <div class="panel-title-row"><h3>Заметка дня</h3><span class="small-label">ИДЕИ</span></div>
-            <textarea id="dayNote" class="textarea" maxlength="1000" placeholder="Главный фокус, мысли или что не забыть..."></textarea>
-            <p class="save-hint">Заметка сохраняется автоматически.</p>
-          </section>
+    <section class="game-frame" aria-label="Игровое поле">
+      <div class="board-wrap" id="boardWrap">
+        <canvas id="game" width="600" height="600" aria-label="Поле игры Змейка"></canvas>
+        <div class="overlay" id="overlay">
+          <div class="overlay-card">
+            <div class="overlay-icon" id="overlayIcon">✳</div>
+            <h2 id="overlayTitle">Готов играть?</h2>
+            <p id="overlayText">Собирай энергию, расти и не врезайся в стены или собственный хвост.</p>
+            <button class="primary" id="mainBtn">НАЧАТЬ ИГРУ&nbsp; ↗</button>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="view" id="weekView" aria-labelledby="weekTitle">
-      <div class="section-head">
-        <div><h2 id="weekTitle">Твоя неделя</h2><p id="weekSubtitle">План на семь дней</p></div>
-        <div class="date-controls">
-          <button class="icon-button" id="prevWeek" type="button" aria-label="Предыдущая неделя">‹</button>
-          <button class="icon-button" id="nextWeek" type="button" aria-label="Следующая неделя">›</button>
-        </div>
-      </div>
-      <div class="week-summary">
-        <div class="summary-tile"><strong id="weekTotal">0</strong><span>задач запланировано</span></div>
-        <div class="summary-tile"><strong id="weekDone">0</strong><span>задач выполнено</span></div>
-        <div class="summary-tile"><strong id="weekPercent">0%</strong><span>недели завершено</span></div>
-      </div>
-      <div class="week-list" id="weekList"></div>
-    </section>
+    <div class="game-actions">
+      <button class="secondary" id="pauseBtn">Ⅱ &nbsp; Пауза</button>
+      <button class="secondary" id="restartBtn">↻ &nbsp; Заново</button>
+    </div>
 
-    <footer class="footer"><span><strong>daymark.</strong> Твой план — твой темп.</span><span>Данные хранятся в этом браузере</span></footer>
-  </div>
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <div class="controls" aria-label="Управление">
+      <button class="dir up" data-dir="up" aria-label="Вверх">↑</button>
+      <button class="dir left" data-dir="left" aria-label="Влево">←</button>
+      <button class="dir down" data-dir="down" aria-label="Вниз">↓</button>
+      <button class="dir right" data-dir="right" aria-label="Вправо">→</button>
+    </div>
+
+    <p class="hint"><strong>Свайпай по полю</strong> или нажимай стрелки.<br>На компьютере также работают клавиши <strong>W A S D</strong> и <strong>← ↑ → ↓</strong>.</p>
+    <div class="footer"><span>Stay sharp</span><span class="footer-dot"></span><span>Beat your best</span></div>
+  </main>
 
   <script>
     (() => {
-      "use strict";
-      const STORAGE_KEY = "daymark-planner-v1";
-      const categories = {
-        study: "Учёба",
-        code: "Программирование",
-        health: "Здоровье",
-        personal: "Личное",
-        other: "Другое"
-      };
-      const $ = (id) => document.getElementById(id);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      let selectedDate = toISODate(today);
-      let visibleView = "day";
-      let weekOffset = 0;
-      let toastTimer = null;
-      let data = loadData();
+      'use strict';
+      const canvas = document.getElementById('game');
+      const ctx = canvas.getContext('2d');
+      const overlay = document.getElementById('overlay');
+      const overlayIcon = document.getElementById('overlayIcon');
+      const overlayTitle = document.getElementById('overlayTitle');
+      const overlayText = document.getElementById('overlayText');
+      const mainBtn = document.getElementById('mainBtn');
+      const scoreEl = document.getElementById('score');
+      const bestEl = document.getElementById('best');
+      const levelEl = document.getElementById('level');
+      const pauseBtn = document.getElementById('pauseBtn');
+      const soundBtn = document.getElementById('soundBtn');
+      const boardWrap = document.getElementById('boardWrap');
 
-      function toISODate(date) {
-        const y = date.getFullYear();
-        const m = String(date.getMonth() + 1).padStart(2, "0");
-        const d = String(date.getDate()).padStart(2, "0");
-        return `${y}-${m}-${d}`;
+      const N = 20;
+      const CELL = canvas.width / N;
+      let snake, food, direction, nextDirection, score, best = readBest();
+      let running = false, paused = false, over = false, started = false;
+      let lastTime = 0, accumulator = 0, soundOn = false, audioCtx = null;
+      let pulse = 0, touchStart = null;
+
+      function readBest() {
+        try { return Number(localStorage.getItem('snake-best') || 0); }
+        catch (_) { return 0; }
       }
-      function fromISODate(iso) {
-        const [y, m, d] = iso.split("-").map(Number);
-        return new Date(y, m - 1, d);
+      function saveBest() {
+        try { localStorage.setItem('snake-best', String(best)); } catch (_) {}
       }
-      function addDays(iso, amount) {
-        const date = fromISODate(iso);
-        date.setDate(date.getDate() + amount);
-        return toISODate(date);
+      function fmt(num) { return String(num).padStart(3, '0'); }
+      function updateStats() {
+        scoreEl.textContent = fmt(score || 0);
+        bestEl.textContent = fmt(best);
+        const level = Math.floor((score || 0) / 5) + 1;
+        levelEl.innerHTML = String(level).padStart(2, '0') + ' <span style="font-size:11px;color:var(--muted);font-weight:700">· ' + (level < 3 ? 'EASY' : level < 6 ? 'MID' : 'FAST') + '</span>';
       }
-      function startOfWeek(iso) {
-        const date = fromISODate(iso);
-        const mondayOffset = (date.getDay() + 6) % 7;
-        date.setDate(date.getDate() - mondayOffset);
-        return toISODate(date);
+      function speed() { return Math.max(65, 145 - Math.floor(score / 5) * 10); }
+      function spawnFood() {
+        let point;
+        do {
+          point = { x: Math.floor(Math.random() * N), y: Math.floor(Math.random() * N) };
+        } while (snake.some(s => s.x === point.x && s.y === point.y));
+        food = point;
       }
-      function formatDate(iso, options = { weekday: "long", day: "numeric", month: "long" }) {
-        return new Intl.DateTimeFormat("ru-RU", options).format(fromISODate(iso));
+      function resetGame() {
+        snake = [{x:9,y:10},{x:8,y:10},{x:7,y:10},{x:6,y:10}];
+        direction = {x:1,y:0}; nextDirection = {x:1,y:0};
+        score = 0; pulse = 0; paused = false; over = false; running = false; accumulator = 0;
+        spawnFood(); updateStats(); draw();
+        pauseBtn.textContent = 'Ⅱ  Пауза';
       }
-      function formatRange(startIso, endIso) {
-        const s = fromISODate(startIso), e = fromISODate(endIso);
-        const sMonth = new Intl.DateTimeFormat("ru-RU", { month: "short" }).format(s).replace(".", "");
-        const eMonth = new Intl.DateTimeFormat("ru-RU", { month: "short" }).format(e).replace(".", "");
-        if (s.getFullYear() !== e.getFullYear()) return `${s.getDate()} ${sMonth} ${s.getFullYear()} — ${e.getDate()} ${eMonth} ${e.getFullYear()}`;
-        if (s.getMonth() !== e.getMonth()) return `${s.getDate()} ${sMonth} — ${e.getDate()} ${eMonth} ${e.getFullYear()}`;
-        return `${s.getDate()} — ${e.getDate()} ${eMonth} ${e.getFullYear()}`;
+      function startGame() {
+        if (over) resetGame();
+        running = true; paused = false; started = true; lastTime = 0; accumulator = 0;
+        overlay.classList.add('hidden');
+        pauseBtn.textContent = 'Ⅱ  Пауза';
+        requestAnimationFrame(loop);
       }
-      function makeId() {
-        return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
+      function showOverlay(icon, title, text, button) {
+        overlayIcon.textContent = icon;
+        overlayTitle.textContent = title;
+        overlayText.textContent = text;
+        mainBtn.innerHTML = button;
+        overlay.classList.remove('hidden');
       }
-      function loadData() {
-        try {
-          const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-          return {
-            tasks: Array.isArray(parsed.tasks) ? parsed.tasks.filter(t => t && typeof t.title === "string" && typeof t.date === "string") : [],
-            notes: parsed.notes && typeof parsed.notes === "object" ? parsed.notes : {}
-          };
-        } catch (error) {
-          return { tasks: [], notes: {} };
+      function endGame() {
+        running = false; paused = false; over = true;
+        if (score > best) { best = score; saveBest(); }
+        updateStats();
+        pauseBtn.textContent = 'Ⅱ  Пауза';
+        showOverlay('×', 'Игра окончена', score > 0 ? 'Твой счёт — ' + score + '. Ещё одна попытка и новый рекорд?' : 'Бывает. Попробуй ещё раз — теперь ты знаешь поле.', 'ИГРАТЬ ЕЩЁ  ↻');
+        tone(130, .15, 'sawtooth');
+      }
+      function setDirection(dir) {
+        const dirs = {up:{x:0,y:-1}, down:{x:0,y:1}, left:{x:-1,y:0}, right:{x:1,y:0}};
+        const d = dirs[dir]; if (!d) return;
+        if (d.x === -direction.x && d.y === -direction.y) return;
+        nextDirection = d;
+        if (!started && !over) startGame();
+        else if (paused) togglePause();
+      }
+      function step() {
+        direction = nextDirection;
+        const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+        const ate = head.x === food.x && head.y === food.y;
+        if (head.x < 0 || head.x >= N || head.y < 0 || head.y >= N) { endGame(); return; }
+        const bodyToCheck = ate ? snake : snake.slice(0, -1);
+        if (bodyToCheck.some(s => s.x === head.x && s.y === head.y)) { endGame(); return; }
+        snake.unshift(head);
+        if (ate) {
+          score += 1; pulse = 1;
+          if (score > best) { best = score; saveBest(); }
+          spawnFood(); updateStats(); tone(440 + Math.min(score, 20) * 18, .07, 'sine');
+        } else snake.pop();
+      }
+      function roundedRect(c, x, y, w, h, r) {
+        c.beginPath(); c.roundRect(x, y, w, h, r); c.fill();
+      }
+      function draw() {
+        const w = canvas.width, h = canvas.height;
+        ctx.clearRect(0,0,w,h);
+        ctx.fillStyle = '#11150f'; ctx.fillRect(0,0,w,h);
+        // Subtle checkerboard grid.
+        for (let y=0;y<N;y++) for (let x=0;x<N;x++) {
+          if ((x+y)%2===0) { ctx.fillStyle = '#151a12'; ctx.fillRect(x*CELL,y*CELL,CELL,CELL); }
         }
-      }
-      function saveData() {
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        } catch (error) {
-          showToast("Не удалось сохранить данные. Проверь свободное место в браузере.");
+        ctx.strokeStyle = '#273021'; ctx.lineWidth = 1;
+        for(let i=0;i<=N;i++) {
+          ctx.beginPath();ctx.moveTo(i*CELL,0);ctx.lineTo(i*CELL,h);ctx.stroke();
+          ctx.beginPath();ctx.moveTo(0,i*CELL);ctx.lineTo(w,i*CELL);ctx.stroke();
         }
-      }
-      function escapeHTML(value) {
-        return String(value).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
-      }
-      function getTasks(iso) {
-        return data.tasks.filter(task => task.date === iso).sort((a, b) => {
-          if (Boolean(a.done) !== Boolean(b.done)) return Number(Boolean(a.done)) - Number(Boolean(b.done));
-          if ((a.time || "99:99") !== (b.time || "99:99")) return (a.time || "99:99").localeCompare(b.time || "99:99");
-          if (Boolean(a.priority === "high") !== Boolean(b.priority === "high")) return Number(b.priority === "high") - Number(a.priority === "high");
-          return (a.createdAt || 0) - (b.createdAt || 0);
-        });
-      }
-      function dayStats(iso) {
-        const tasks = getTasks(iso);
-        const done = tasks.filter(t => t.done).length;
-        return { total: tasks.length, done, percent: tasks.length ? Math.round(done / tasks.length * 100) : 0 };
-      }
-      function showToast(message) {
-        const toast = $("toast");
-        toast.textContent = message;
-        toast.classList.add("show");
-        clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => toast.classList.remove("show"), 2300);
-      }
-      function setView(view) {
-        visibleView = view;
-        $("dayView").classList.toggle("active", view === "day");
-        $("weekView").classList.toggle("active", view === "week");
-        $("dayTab").classList.toggle("active", view === "day");
-        $("weekTab").classList.toggle("active", view === "week");
-        $("dayTab").setAttribute("aria-selected", String(view === "day"));
-        $("weekTab").setAttribute("aria-selected", String(view === "week"));
-        render();
-      }
-      function renderHeader() {
-        $("topDate").textContent = formatDate(toISODate(today), { weekday: "short", day: "numeric", month: "short" }).toLocaleUpperCase("ru-RU");
-        const stats = dayStats(toISODate(today));
-        $("heroDone").textContent = `${stats.done}/${stats.total}`;
-      }
-      function renderDay() {
-        const iso = selectedDate;
-        const isToday = iso === toISODate(today);
-        $("dayTitle").textContent = isToday ? "Сегодня" : formatDate(iso, { weekday: "long", day: "numeric", month: "long" });
-        $("daySubtitle").textContent = isToday ? formatDate(iso, { weekday: "long", day: "numeric", month: "long" }) : "Твой план на выбранный день";
-        $("taskListLabel").textContent = isToday ? "НА СЕГОДНЯ" : formatDate(iso, { day: "numeric", month: "short" }).toLocaleUpperCase("ru-RU");
-        const stats = dayStats(iso);
-        $("dayProgressText").textContent = `${stats.done} из ${stats.total} задач · ${stats.percent}%`;
-        $("dayProgressBar").style.width = `${stats.percent}%`;
-        $("dayNote").value = data.notes[iso] || "";
-        const tasks = getTasks(iso);
-        if (!tasks.length) {
-          $("taskList").innerHTML = `<div class="empty"><div class="empty-mark">✦</div><strong>Здесь пока свободно</strong><p>Добавь первую задачу и освободи голову от лишнего.</p></div>`;
-        } else {
-          $("taskList").innerHTML = tasks.map(task => {
-            const safeTitle = escapeHTML(task.title);
-            const category = categories[task.category] || categories.other;
-            const meta = `${task.time ? `<span class="chip time">◷ ${escapeHTML(task.time)}</span>` : ""}<span class="chip">${escapeHTML(category)}</span>${task.priority === "high" ? `<span class="chip important">★ Важно</span>` : ""}`;
-            return `<article class="task ${task.done ? "done" : ""}" data-task-id="${escapeHTML(task.id)}">
-              <input class="check" type="checkbox" aria-label="Отметить выполненной: ${safeTitle}" ${task.done ? "checked" : ""} data-action="toggle">
-              <div><div class="task-title">${safeTitle}</div><div class="task-meta">${meta}</div></div>
-              <div class="task-actions"><button class="tiny-button" type="button" data-action="edit" aria-label="Изменить задачу" title="Изменить">✎</button><button class="tiny-button" type="button" data-action="delete" aria-label="Удалить задачу" title="Удалить">×</button></div>
-            </article>`;
-          }).join("");
-        }
-      }
-      function renderWeek() {
-        const currentWeekStart = addDays(startOfWeek(toISODate(today)), weekOffset * 7);
-        const end = addDays(currentWeekStart, 6);
-        $("weekSubtitle").textContent = formatRange(currentWeekStart, end);
-        const weekDates = Array.from({ length: 7 }, (_, i) => addDays(currentWeekStart, i));
-        const tasks = data.tasks.filter(task => task.date >= currentWeekStart && task.date <= end);
-        const done = tasks.filter(task => task.done).length;
-        $("weekTotal").textContent = tasks.length;
-        $("weekDone").textContent = done;
-        $("weekPercent").textContent = tasks.length ? `${Math.round(done / tasks.length * 100)}%` : "0%";
-        $("weekList").innerHTML = weekDates.map(iso => {
-          const d = fromISODate(iso);
-          const dayTasks = getTasks(iso);
-          const finished = dayTasks.filter(t => t.done).length;
-          const isToday = iso === toISODate(today);
-          const isSelected = iso === selectedDate;
-          const mini = dayTasks.length ? `<div class="week-mini-list">${dayTasks.slice(0, 4).map(t => `<div class="week-mini-task ${t.done ? "done" : ""}"><span>${t.time ? `<b>${escapeHTML(t.time)}</b> · ` : ""}${escapeHTML(t.title)}</span></div>`).join("")}${dayTasks.length > 4 ? `<div class="week-empty">и ещё ${dayTasks.length - 4} задач…</div>` : ""}</div>` : `<div class="week-empty">Пока ничего не запланировано</div>`;
-          return `<article class="week-day ${isToday ? "is-today" : ""} ${isSelected ? "is-selected" : ""}">
-            <button class="day-label" type="button" data-action="open-day" data-date="${iso}" aria-label="Открыть ${escapeHTML(formatDate(iso))}"><span class="dow">${escapeHTML(new Intl.DateTimeFormat("ru-RU", { weekday: "short" }).format(d).replace(".", ""))}</span><span class="dom">${d.getDate()}</span><span class="month">${escapeHTML(new Intl.DateTimeFormat("ru-RU", { month: "short" }).format(d).replace(".", ""))}</span></button>
-            <div class="week-content"><div class="week-content-head"><strong>${isToday ? "Сегодня" : escapeHTML(formatDate(iso, { weekday: "long" }))}</strong><span class="week-count">${finished}/${dayTasks.length} выполнено</span></div>${mini}<div class="week-progress"><span style="width:${dayTasks.length ? Math.round(finished / dayTasks.length * 100) : 0}%"></span></div></div>
-            <button class="week-add" type="button" data-action="add-to-day" data-date="${iso}">＋ План</button>
-          </article>`;
-        }).join("");
-      }
-      function render() {
-        renderHeader();
-        if (visibleView === "day") renderDay();
-        else renderWeek();
-      }
-      function addTask(event) {
-        event.preventDefault();
-        const title = $("taskTitle").value.trim();
-        if (!title) { $("taskTitle").focus(); return; }
-        data.tasks.push({
-          id: makeId(), title,
-          date: selectedDate,
-          category: $("taskCategory").value,
-          time: $("taskTime").value,
-          priority: $("taskPriority").value,
-          done: false,
-          createdAt: Date.now()
-        });
-        saveData();
-        $("taskForm").reset();
-        $("taskTitle").focus();
-        render();
-        showToast("Задача добавлена в план ✓");
-      }
-      function handleTaskAction(event) {
-        const target = event.target.closest("[data-action]");
-        if (!target) return;
-        const action = target.dataset.action;
-        if (action === "open-day" || action === "add-to-day") {
-          selectedDate = target.dataset.date;
-          setView("day");
-          if (action === "add-to-day") {
-            setTimeout(() => $("taskTitle").focus(), 30);
+        // Food glow and core.
+        const fx = (food.x+.5)*CELL, fy = (food.y+.5)*CELL;
+        const glow = ctx.createRadialGradient(fx,fy,2,fx,fy,CELL*.72);
+        glow.addColorStop(0,'#ff765c66'); glow.addColorStop(1,'#ff765c00');
+        ctx.fillStyle = glow; ctx.fillRect(fx-CELL,fy-CELL,CELL*2,CELL*2);
+        ctx.fillStyle = '#ff705d'; roundedRect(ctx,food.x*CELL+CELL*.22,food.y*CELL+CELL*.22,CELL*.56,CELL*.56,CELL*.18);
+        ctx.fillStyle = '#ffb2a3'; ctx.beginPath();ctx.arc(fx-CELL*.09,fy-CELL*.09,CELL*.075,0,Math.PI*2);ctx.fill();
+        // Snake: tail fades to brighter head.
+        snake.forEach((s,i) => {
+          const inset = i===0 ? 1.5 : 2.4;
+          const x=s.x*CELL+inset,y=s.y*CELL+inset,size=CELL-inset*2;
+          const t = Math.max(0,1-i/Math.max(1,snake.length));
+          const r = Math.round(111 + t*85), g = Math.round(151 + t*102), b = Math.round(52 + t*42);
+          ctx.fillStyle = `rgb(${r},${g},${b})`;
+          roundedRect(ctx,x,y,size,size,i===0?CELL*.26:CELL*.20);
+          if (i===0) {
+            // Eyes point in the direction of travel.
+            const perp = {x:-direction.y,y:direction.x};
+            const eyeForward = CELL*.12, eyeSide = CELL*.16;
+            const ex = (s.x+.5+direction.x*eyeForward/CELL)*CELL;
+            const ey = (s.y+.5+direction.y*eyeForward/CELL)*CELL;
+            ctx.fillStyle='#18200f';
+            for (const sign of [-1,1]) {
+              ctx.beginPath();ctx.arc(ex+perp.x*eyeSide*sign,ey+perp.y*eyeSide*sign,CELL*.055,0,Math.PI*2);ctx.fill();
+            }
+          } else if (i % 4 === 0) {
+            ctx.fillStyle = '#efffb72a'; roundedRect(ctx,x+CELL*.16,y+CELL*.16,size*.22,size*.22,CELL*.06);
           }
-          return;
-        }
-        const article = target.closest("[data-task-id]");
-        if (!article) return;
-        const task = data.tasks.find(t => t.id === article.dataset.taskId);
-        if (!task) return;
-        if (action === "toggle") {
-          task.done = target.checked;
-          saveData(); render();
-          if (task.done) showToast("Отлично. Ещё один шаг сделан ✓");
-        } else if (action === "delete") {
-          data.tasks = data.tasks.filter(t => t.id !== task.id);
-          saveData(); render(); showToast("Задача удалена");
-        } else if (action === "edit") {
-          const updated = window.prompt("Измени текст задачи:", task.title);
-          if (updated === null) return;
-          if (!updated.trim()) { showToast("Текст задачи не может быть пустым"); return; }
-          task.title = updated.trim().slice(0, 140);
-          saveData(); render(); showToast("Изменения сохранены");
-        }
-      }
-      function moveSelectedDay(amount) { selectedDate = addDays(selectedDate, amount); render(); }
-      function goToday() { selectedDate = toISODate(today); weekOffset = 0; render(); }
-
-      $("taskForm").addEventListener("submit", addTask);
-      $("taskList").addEventListener("click", handleTaskAction);
-      $("taskList").addEventListener("change", handleTaskAction);
-      $("weekList").addEventListener("click", handleTaskAction);
-      $("dayTab").addEventListener("click", () => setView("day"));
-      $("weekTab").addEventListener("click", () => setView("week"));
-      $("todayBtn").addEventListener("click", goToday);
-      $("prevDay").addEventListener("click", () => moveSelectedDay(-1));
-      $("nextDay").addEventListener("click", () => moveSelectedDay(1));
-      $("prevWeek").addEventListener("click", () => { weekOffset--; renderWeek(); });
-      $("nextWeek").addEventListener("click", () => { weekOffset++; renderWeek(); });
-      $("dayNote").addEventListener("input", () => {
-        const value = $("dayNote").value;
-        if (value.trim()) data.notes[selectedDate] = value;
-        else delete data.notes[selectedDate];
-        saveData();
-      });
-      window.addEventListener("storage", (event) => {
-        if (event.key === STORAGE_KEY) { data = loadData(); render(); }
-      });
-      render();
-
-      if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-        window.addEventListener("load", () => {
-          navigator.serviceWorker.register("./sw.js").catch(() => {});
         });
       }
+      function loop(timestamp) {
+        if (!running || paused) return;
+        if (!lastTime) lastTime = timestamp;
+        const delta = Math.min(timestamp - lastTime, 250); lastTime = timestamp;
+        accumulator += delta; pulse = Math.max(0,pulse-delta/230);
+        let interval = speed();
+        while (accumulator >= interval && running && !paused) { step(); accumulator -= interval; interval = speed(); }
+        draw();
+        if (running && !paused) requestAnimationFrame(loop);
+      }
+      function togglePause() {
+        if (over || !started) return;
+        if (!running && !paused) return;
+        if (paused) {
+          paused = false; running = true; lastTime = 0; pauseBtn.textContent = 'Ⅱ  Пауза';
+          overlay.classList.add('hidden'); requestAnimationFrame(loop);
+        } else {
+          paused = true; running = false; pauseBtn.textContent = '▶  Продолжить';
+          showOverlay('Ⅱ','Пауза','Переведи дух. Когда будешь готов — продолжай.','ПРОДОЛЖИТЬ  ▶');
+        }
+      }
+      function tone(freq, duration, type) {
+        if (!soundOn) return;
+        try {
+          audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+          if (audioCtx.state === 'suspended') audioCtx.resume();
+          const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+          osc.type = type || 'sine'; osc.frequency.value = freq;
+          gain.gain.setValueAtTime(.055,audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+duration);
+          osc.connect(gain);gain.connect(audioCtx.destination);osc.start();osc.stop(audioCtx.currentTime+duration);
+        } catch (_) {}
+      }
+      mainBtn.addEventListener('click', () => {
+        if (paused) { togglePause(); return; }
+        startGame();
+      });
+      document.getElementById('restartBtn').addEventListener('click', () => { resetGame(); started = false; showOverlay('✳','Готов играть?','Собирай энергию, расти и не врезайся в стены или собственный хвост.','НАЧАТЬ ИГРУ  ↗'); });
+      pauseBtn.addEventListener('click', () => { if (!started && !over) startGame(); else togglePause(); });
+      document.querySelectorAll('[data-dir]').forEach(btn => {
+        btn.addEventListener('pointerdown', e => { e.preventDefault(); setDirection(btn.dataset.dir); });
+      });
+      soundBtn.addEventListener('click', () => {
+        soundOn = !soundOn;
+        soundBtn.textContent = soundOn ? '♫' : '♪';
+        soundBtn.style.color = soundOn ? 'var(--lime)' : 'var(--muted)';
+        soundBtn.setAttribute('aria-label', soundOn ? 'Выключить звук' : 'Включить звук');
+        if(soundOn) tone(520,.06,'sine');
+      });
+      document.addEventListener('keydown', e => {
+        const keys = {ArrowUp:'up',w:'up',W:'up',ArrowDown:'down',s:'down',S:'down',ArrowLeft:'left',a:'left',A:'left',ArrowRight:'right',d:'right',D:'right'};
+        if(keys[e.key]) { e.preventDefault(); setDirection(keys[e.key]); }
+        if(e.code === 'Space') { e.preventDefault(); if(!started && !over) startGame(); else togglePause(); }
+        if(e.key === 'Escape' && running) togglePause();
+      });
+      boardWrap.addEventListener('touchstart', e => {
+        if(e.changedTouches.length) touchStart = {x:e.changedTouches[0].clientX,y:e.changedTouches[0].clientY};
+      }, {passive:true});
+      boardWrap.addEventListener('touchend', e => {
+        if(!touchStart || !e.changedTouches.length) return;
+        const dx=e.changedTouches[0].clientX-touchStart.x, dy=e.changedTouches[0].clientY-touchStart.y;
+        touchStart=null;
+        if(Math.max(Math.abs(dx),Math.abs(dy))<18) return;
+        if(Math.abs(dx)>Math.abs(dy)) setDirection(dx>0?'right':'left');
+        else setDirection(dy>0?'down':'up');
+      }, {passive:true});
+      document.addEventListener('visibilitychange', () => { if(document.hidden && running) togglePause(); });
+      updateStats(); resetGame();
     })();
   </script>
 </body>
