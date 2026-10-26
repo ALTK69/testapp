@@ -1,0 +1,117 @@
+```html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#101010">
+
+    <title>My Progress</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 24px;
+            background: #101010;
+            color: white;
+            font-family: -apple-system, sans-serif;
+        }
+
+        .app {
+            max-width: 420px;
+            margin: 40px auto;
+        }
+
+        h1 {
+            font-size: 32px;
+        }
+
+        .card {
+            padding: 20px;
+            margin: 16px 0;
+            background: #202020;
+            border-radius: 18px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            margin-top: 12px;
+            border: none;
+            border-radius: 12px;
+            background: #b7ff65;
+            color: #101010;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .number {
+            font-size: 36px;
+            font-weight: bold;
+        }
+
+        p {
+            color: #b0b0b0;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="app">
+        <h1>My Progress</h1>
+        <p>Build yourself every day.</p>
+
+        <section class="card">
+            <h2>Programming</h2>
+            <p>Сегодня я учился:</p>
+
+            <div class="number" id="hours">0</div>
+            <p>часов за сегодня</p>
+
+            <button onclick="addHour()">
+                + 1 час учёбы
+            </button>
+        </section>
+
+        <section class="card">
+            <h2>My goal</h2>
+            <p>Стать уверенным разработчиком.</p>
+            <p id="message">Начни с одного часа.</p>
+        </section>
+    </main>
+
+    <script>
+        const today = new Date().toDateString();
+
+        if (localStorage.getItem("studyDate") !== today) {
+            localStorage.setItem("studyDate", today);
+            localStorage.setItem("hours", "0");
+        }
+
+        let hours = Number(localStorage.getItem("hours") || 0);
+
+        function render() {
+            document.getElementById("hours").textContent = hours;
+
+            document.getElementById("message").textContent =
+                hours >= 3
+                    ? "Отличная работа! Ты выполнил цель."
+                    : "Твоя цель — 3 часа программирования.";
+
+            localStorage.setItem("hours", hours);
+        }
+
+        function addHour() {
+            hours++;
+            render();
+        }
+
+        render();
+    </script>
+</body>
+</html>
+```
