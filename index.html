@@ -1,330 +1,148 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-  <meta name="theme-color" content="#10120f">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="SNAKE">
-  <title>SNAKE — Аркада</title>
-  <style>
-    :root {
-      color-scheme: dark;
-      --bg: #10120f;
-      --panel: #191d17;
-      --panel-2: #20251d;
-      --line: #343d2d;
-      --text: #f1f4e9;
-      --muted: #9aa391;
-      --lime: #c4f36b;
-      --lime-dark: #8fb73e;
-      --red: #ff6d5e;
-      --radius: 22px;
-    }
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    body { overscroll-behavior: none; }
-    button { font: inherit; cursor: pointer; border: 0; color: inherit; }
-    .shell { width: min(100%, 580px); margin: 0 auto; padding: max(18px, env(safe-area-inset-top)) 18px max(22px, env(safe-area-inset-bottom)); }
-    header { display:flex; justify-content:space-between; align-items:center; gap:12px; margin: 8px 2px 24px; }
-    .brand { display:flex; align-items:center; gap:11px; }
-    .brand-mark { width:42px; height:42px; border-radius:14px; display:grid; place-items:center; background:var(--lime); color:#14180e; font-size:23px; box-shadow:0 5px 22px #c4f36b1b; }
-    .brand-title { margin:0; font-size:19px; font-weight:900; letter-spacing:.16em; }
-    .brand-sub { margin:4px 0 0; color:var(--muted); font-size:10px; letter-spacing:.18em; text-transform:uppercase; }
-    .sound-btn { width:42px; height:42px; border:1px solid var(--line); background:var(--panel); border-radius:14px; color:var(--muted); font-size:17px; }
-    .score-row { display:grid; grid-template-columns:1fr 1fr 1.2fr; gap:9px; margin-bottom:14px; }
-    .stat { min-width:0; background:var(--panel); border:1px solid #293026; border-radius:15px; padding:12px 13px; }
-    .stat-label { color:var(--muted); text-transform:uppercase; letter-spacing:.12em; font-size:9px; font-weight:800; }
-    .stat-value { margin-top:5px; font-size:24px; font-weight:850; line-height:1.05; font-variant-numeric:tabular-nums; }
-    .stat-value.lime { color:var(--lime); }
-    .game-frame { position:relative; overflow:hidden; padding:9px; border:1px solid #333d2d; border-radius:24px; background:#151912; box-shadow:0 18px 55px #0005; }
-    .board-wrap { position:relative; width:100%; aspect-ratio:1; overflow:hidden; border-radius:16px; background:#11150f; touch-action:none; }
-    canvas { display:block; width:100%; height:100%; touch-action:none; }
-    .overlay { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:24px; background:#0b0e0bcf; backdrop-filter:blur(5px); text-align:center; }
-    .overlay.hidden { display:none; }
-    .overlay-card { width:100%; max-width:300px; }
-    .overlay-icon { font-size:42px; margin-bottom:10px; filter:drop-shadow(0 0 20px #c4f36b30); }
-    .overlay h2 { font-size:27px; line-height:1.05; margin:0 0 10px; font-weight:900; letter-spacing:-.04em; }
-    .overlay p { margin:0 auto 22px; max-width:250px; font-size:13px; line-height:1.55; color:#adb5a4; }
-    .primary { min-height:50px; width:100%; padding:14px 18px; border-radius:15px; background:var(--lime); color:#15190f; font-size:14px; font-weight:900; box-shadow:0 7px 24px #c4f36b18; }
-    .primary:active { transform:scale(.985); }
-    .game-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:13px; }
-    .secondary { min-height:47px; padding:12px 14px; border-radius:14px; background:var(--panel); border:1px solid var(--line); font-size:13px; font-weight:750; color:#dfe5d6; }
-    .secondary:active, .sound-btn:active, .dir:active { background:#2c3523; }
-    .controls { width:190px; margin:18px auto 0; display:grid; grid-template-columns:repeat(3, 58px); grid-template-rows:repeat(2, 54px); gap:7px; justify-content:center; }
-    .dir { background:var(--panel-2); border:1px solid #35402b; border-radius:16px; color:var(--lime); font-size:21px; font-weight:900; touch-action:manipulation; box-shadow:0 4px 0 #0a0c09; }
-    .dir.up { grid-column:2; grid-row:1; }
-    .dir.left { grid-column:1; grid-row:2; }
-    .dir.down { grid-column:2; grid-row:2; }
-    .dir.right { grid-column:3; grid-row:2; }
-    .hint { margin:17px 0 0; color:#727c68; font-size:11px; line-height:1.6; text-align:center; }
-    .hint strong { color:#a7b096; font-weight:700; }
-    .footer { display:flex; justify-content:center; gap:7px; align-items:center; margin-top:19px; color:#66705e; font-size:10px; letter-spacing:.12em; text-transform:uppercase; }
-    .footer-dot { width:4px; height:4px; border-radius:50%; background:var(--lime-dark); }
-    @media (min-width:520px) { .shell { padding-top:28px; } header { margin-bottom:27px; } .controls { margin-top:17px; } }
-    @media (max-height:780px) and (max-width:520px) { .shell { padding-top:max(10px, env(safe-area-inset-top)); } header { margin-bottom:14px; } .brand-mark { width:36px;height:36px; } .stat { padding:9px 11px; } .stat-value { font-size:21px; } .controls { margin-top:12px; grid-template-rows:repeat(2,48px); } .dir { border-radius:13px; } .hint { margin-top:11px; } }
-    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; } }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#111827">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Башня Артура">
+<title>Башня Артура — Arena Battle</title>
+<style>
+:root{--bg:#0b1020;--panel:#151d31;--panel2:#1b2840;--line:#2d3b55;--text:#f4f7fb;--muted:#9baac1;--lime:#c7f36b;--pink:#ff6e88;--purple:#b79aff;--gold:#ffd77a}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;min-height:100%;background:radial-gradient(ellipse at top,#17253b 0,#0b1020 68%);color:var(--text);font-family:ui-rounded,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{padding:14px 12px calc(18px + env(safe-area-inset-bottom));display:flex;justify-content:center}.app{width:min(100%,480px);display:flex;flex-direction:column;gap:10px}.topbar{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:3px 2px}.brand{display:flex;gap:10px;align-items:center}.logo{width:42px;height:42px;border-radius:14px;background:linear-gradient(145deg,#c7f36b,#78b83f);display:grid;place-items:center;color:#17220d;font-size:24px;box-shadow:0 5px 20px #9ccc4933}.brand h1{font-size:17px;line-height:1.05;margin:0;letter-spacing:.3px}.brand p{font-size:10px;letter-spacing:1.9px;color:var(--muted);margin:5px 0 0;font-weight:800}.record{border:1px solid var(--line);background:#151d31;border-radius:12px;padding:7px 10px;text-align:right;min-width:82px}.record small{display:block;color:var(--muted);font-size:9px;letter-spacing:1px}.record strong{font-size:17px;color:var(--gold)}.stats{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}.tower-stat{background:#151d31;border:1px solid var(--line);border-radius:12px;padding:8px 10px;min-width:0}.tower-stat.enemy{border-color:#71384d}.tower-stat .label{font-size:10px;font-weight:900;letter-spacing:1px;color:var(--muted);display:flex;justify-content:space-between;gap:5px}.tower-stat.enemy .label{color:#ff94a7}.tower-stat.player .label{color:#c7f36b}.hp-track{height:7px;background:#303b50;border-radius:10px;overflow:hidden;margin-top:7px}.hp-fill{height:100%;width:100%;background:linear-gradient(90deg,#bbf36b,#e1ff9d);border-radius:10px;transition:width .2s}.enemy .hp-fill{background:linear-gradient(90deg,#ff557c,#ff9b89)}.vs{font-size:11px;color:#71829d;font-weight:1000;letter-spacing:1px}.arena-wrap{position:relative;border:2px solid #34435b;border-radius:20px;overflow:hidden;box-shadow:0 15px 35px #0005;background:#223d34;touch-action:pan-y}.arena{display:block;width:100%;height:auto;aspect-ratio:420/650;touch-action:manipulation}.arena-tag{position:absolute;top:10px;left:50%;transform:translateX(-50%);padding:5px 11px;border-radius:999px;background:#0c1220d9;border:1px solid #ffffff22;font-size:9px;letter-spacing:1.5px;font-weight:900;white-space:nowrap;pointer-events:none}.battle-note{font-size:11px;color:#91a2bb;text-align:center;margin-top:-3px}.lane-label{font-size:10px;font-weight:900;letter-spacing:1px;color:var(--muted);margin:2px 2px -4px}.lanes{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.lane-btn{border:1px solid var(--line);border-radius:11px;background:#151d31;color:#acbad0;padding:9px 4px;font-weight:800;font-size:12px;cursor:pointer}.lane-btn.active{background:#2b3a2b;color:#d8ff8c;border-color:#91c94b;box-shadow:inset 0 0 0 1px #91c94b44}.lane-btn:active,.card:active,.main-btn:active{transform:scale(.98)}.elixir-box{background:#151d31;border:1px solid var(--line);border-radius:13px;padding:9px 11px}.elixir-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}.elixir-title{font-size:11px;letter-spacing:1.1px;font-weight:1000;color:#d6c5ff}.elixir-value{font-size:13px;font-weight:1000;color:#e1d8ff}.elixir-track{height:9px;border-radius:20px;background:#2b2445;display:flex;gap:3px;padding:2px;overflow:hidden}.pip{flex:1;border-radius:4px;background:#3e335e}.pip.on{background:linear-gradient(180deg,#d9bdff,#9274e5);box-shadow:0 0 8px #b79aff44}.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.card{position:relative;min-width:0;border:1px solid #394865;border-radius:14px;background:linear-gradient(160deg,#202c43,#121a2d);color:var(--text);padding:8px 4px 9px;min-height:105px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;box-shadow:0 4px 10px #0002;transition:transform .08s,border-color .15s}.card:disabled{opacity:.42;filter:saturate(.5);cursor:not-allowed}.card .cost{position:absolute;top:5px;left:5px;width:21px;height:21px;background:#9875ed;color:white;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:1000;box-shadow:0 2px 5px #0006}.card .art{font-size:30px;line-height:1.15;margin-top:9px;filter:drop-shadow(0 3px 2px #0005)}.card .name{font-size:11px;font-weight:950;text-align:center;line-height:1.1}.card .desc{font-size:9px;color:#96a6bf;text-align:center;line-height:1.15}.bottom-row{display:flex;justify-content:space-between;align-items:center;gap:8px}.hint{font-size:10px;line-height:1.35;color:#8495ae;max-width:235px}.main-btn{border:0;border-radius:11px;background:var(--lime);color:#16210b;font-weight:1000;padding:11px 13px;font-size:12px;cursor:pointer;white-space:nowrap}.main-btn.secondary{background:#26334a;color:#e2eaf7;border:1px solid #3d4b65}.overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:#08101bd9;backdrop-filter:blur(5px);padding:22px;text-align:center;z-index:4}.overlay.show{display:flex}.modal{width:100%;max-width:290px;border:1px solid #465674;border-radius:20px;padding:22px 18px;background:linear-gradient(150deg,#1c2940,#111827);box-shadow:0 20px 55px #0008}.modal .big{font-size:42px}.modal h2{font-size:23px;margin:7px 0}.modal p{font-size:12px;color:#aab8cc;line-height:1.5;margin:0 0 17px}.modal .main-btn{width:100%;padding:13px}.footer{text-align:center;font-size:9px;color:#566680;letter-spacing:1px;padding:1px 0 4px}
+@media(min-width:440px){body{padding-top:18px}.app{gap:11px}.arena-wrap{border-radius:22px}.card{min-height:110px}}
+</style>
 </head>
 <body>
-  <main class="shell">
-    <header>
-      <div class="brand">
-        <div class="brand-mark" aria-hidden="true">↗</div>
-        <div><h1 class="brand-title">SNAKE</h1><p class="brand-sub">Classic arcade · 001</p></div>
-      </div>
-      <button class="sound-btn" id="soundBtn" aria-label="Звук включён" title="Включить или выключить звук">♪</button>
-    </header>
-
-    <section class="score-row" aria-label="Статистика игры">
-      <div class="stat"><div class="stat-label">Счёт</div><div class="stat-value lime" id="score">000</div></div>
-      <div class="stat"><div class="stat-label">Рекорд</div><div class="stat-value" id="best">000</div></div>
-      <div class="stat"><div class="stat-label">Уровень</div><div class="stat-value" id="level">01 <span style="font-size:11px;color:var(--muted);font-weight:700">· EASY</span></div></div>
-    </section>
-
-    <section class="game-frame" aria-label="Игровое поле">
-      <div class="board-wrap" id="boardWrap">
-        <canvas id="game" width="600" height="600" aria-label="Поле игры Змейка"></canvas>
-        <div class="overlay" id="overlay">
-          <div class="overlay-card">
-            <div class="overlay-icon" id="overlayIcon">✳</div>
-            <h2 id="overlayTitle">Готов играть?</h2>
-            <p id="overlayText">Собирай энергию, расти и не врезайся в стены или собственный хвост.</p>
-            <button class="primary" id="mainBtn">НАЧАТЬ ИГРУ&nbsp; ↗</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <div class="game-actions">
-      <button class="secondary" id="pauseBtn">Ⅱ &nbsp; Пауза</button>
-      <button class="secondary" id="restartBtn">↻ &nbsp; Заново</button>
-    </div>
-
-    <div class="controls" aria-label="Управление">
-      <button class="dir up" data-dir="up" aria-label="Вверх">↑</button>
-      <button class="dir left" data-dir="left" aria-label="Влево">←</button>
-      <button class="dir down" data-dir="down" aria-label="Вниз">↓</button>
-      <button class="dir right" data-dir="right" aria-label="Вправо">→</button>
-    </div>
-
-    <p class="hint"><strong>Свайпай по полю</strong> или нажимай стрелки.<br>На компьютере также работают клавиши <strong>W A S D</strong> и <strong>← ↑ → ↓</strong>.</p>
-    <div class="footer"><span>Stay sharp</span><span class="footer-dot"></span><span>Beat your best</span></div>
-  </main>
-
-  <script>
-    (() => {
-      'use strict';
-      const canvas = document.getElementById('game');
-      const ctx = canvas.getContext('2d');
-      const overlay = document.getElementById('overlay');
-      const overlayIcon = document.getElementById('overlayIcon');
-      const overlayTitle = document.getElementById('overlayTitle');
-      const overlayText = document.getElementById('overlayText');
-      const mainBtn = document.getElementById('mainBtn');
-      const scoreEl = document.getElementById('score');
-      const bestEl = document.getElementById('best');
-      const levelEl = document.getElementById('level');
-      const pauseBtn = document.getElementById('pauseBtn');
-      const soundBtn = document.getElementById('soundBtn');
-      const boardWrap = document.getElementById('boardWrap');
-
-      const N = 20;
-      const CELL = canvas.width / N;
-      let snake, food, direction, nextDirection, score, best = readBest();
-      let running = false, paused = false, over = false, started = false;
-      let lastTime = 0, accumulator = 0, soundOn = false, audioCtx = null;
-      let pulse = 0, touchStart = null;
-
-      function readBest() {
-        try { return Number(localStorage.getItem('snake-best') || 0); }
-        catch (_) { return 0; }
-      }
-      function saveBest() {
-        try { localStorage.setItem('snake-best', String(best)); } catch (_) {}
-      }
-      function fmt(num) { return String(num).padStart(3, '0'); }
-      function updateStats() {
-        scoreEl.textContent = fmt(score || 0);
-        bestEl.textContent = fmt(best);
-        const level = Math.floor((score || 0) / 5) + 1;
-        levelEl.innerHTML = String(level).padStart(2, '0') + ' <span style="font-size:11px;color:var(--muted);font-weight:700">· ' + (level < 3 ? 'EASY' : level < 6 ? 'MID' : 'FAST') + '</span>';
-      }
-      function speed() { return Math.max(65, 145 - Math.floor(score / 5) * 10); }
-      function spawnFood() {
-        let point;
-        do {
-          point = { x: Math.floor(Math.random() * N), y: Math.floor(Math.random() * N) };
-        } while (snake.some(s => s.x === point.x && s.y === point.y));
-        food = point;
-      }
-      function resetGame() {
-        snake = [{x:9,y:10},{x:8,y:10},{x:7,y:10},{x:6,y:10}];
-        direction = {x:1,y:0}; nextDirection = {x:1,y:0};
-        score = 0; pulse = 0; paused = false; over = false; running = false; accumulator = 0;
-        spawnFood(); updateStats(); draw();
-        pauseBtn.textContent = 'Ⅱ  Пауза';
-      }
-      function startGame() {
-        if (over) resetGame();
-        running = true; paused = false; started = true; lastTime = 0; accumulator = 0;
-        overlay.classList.add('hidden');
-        pauseBtn.textContent = 'Ⅱ  Пауза';
-        requestAnimationFrame(loop);
-      }
-      function showOverlay(icon, title, text, button) {
-        overlayIcon.textContent = icon;
-        overlayTitle.textContent = title;
-        overlayText.textContent = text;
-        mainBtn.innerHTML = button;
-        overlay.classList.remove('hidden');
-      }
-      function endGame() {
-        running = false; paused = false; over = true;
-        if (score > best) { best = score; saveBest(); }
-        updateStats();
-        pauseBtn.textContent = 'Ⅱ  Пауза';
-        showOverlay('×', 'Игра окончена', score > 0 ? 'Твой счёт — ' + score + '. Ещё одна попытка и новый рекорд?' : 'Бывает. Попробуй ещё раз — теперь ты знаешь поле.', 'ИГРАТЬ ЕЩЁ  ↻');
-        tone(130, .15, 'sawtooth');
-      }
-      function setDirection(dir) {
-        const dirs = {up:{x:0,y:-1}, down:{x:0,y:1}, left:{x:-1,y:0}, right:{x:1,y:0}};
-        const d = dirs[dir]; if (!d) return;
-        if (d.x === -direction.x && d.y === -direction.y) return;
-        nextDirection = d;
-        if (!started && !over) startGame();
-        else if (paused) togglePause();
-      }
-      function step() {
-        direction = nextDirection;
-        const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
-        const ate = head.x === food.x && head.y === food.y;
-        if (head.x < 0 || head.x >= N || head.y < 0 || head.y >= N) { endGame(); return; }
-        const bodyToCheck = ate ? snake : snake.slice(0, -1);
-        if (bodyToCheck.some(s => s.x === head.x && s.y === head.y)) { endGame(); return; }
-        snake.unshift(head);
-        if (ate) {
-          score += 1; pulse = 1;
-          if (score > best) { best = score; saveBest(); }
-          spawnFood(); updateStats(); tone(440 + Math.min(score, 20) * 18, .07, 'sine');
-        } else snake.pop();
-      }
-      function roundedRect(c, x, y, w, h, r) {
-        c.beginPath(); c.roundRect(x, y, w, h, r); c.fill();
-      }
-      function draw() {
-        const w = canvas.width, h = canvas.height;
-        ctx.clearRect(0,0,w,h);
-        ctx.fillStyle = '#11150f'; ctx.fillRect(0,0,w,h);
-        // Subtle checkerboard grid.
-        for (let y=0;y<N;y++) for (let x=0;x<N;x++) {
-          if ((x+y)%2===0) { ctx.fillStyle = '#151a12'; ctx.fillRect(x*CELL,y*CELL,CELL,CELL); }
-        }
-        ctx.strokeStyle = '#273021'; ctx.lineWidth = 1;
-        for(let i=0;i<=N;i++) {
-          ctx.beginPath();ctx.moveTo(i*CELL,0);ctx.lineTo(i*CELL,h);ctx.stroke();
-          ctx.beginPath();ctx.moveTo(0,i*CELL);ctx.lineTo(w,i*CELL);ctx.stroke();
-        }
-        // Food glow and core.
-        const fx = (food.x+.5)*CELL, fy = (food.y+.5)*CELL;
-        const glow = ctx.createRadialGradient(fx,fy,2,fx,fy,CELL*.72);
-        glow.addColorStop(0,'#ff765c66'); glow.addColorStop(1,'#ff765c00');
-        ctx.fillStyle = glow; ctx.fillRect(fx-CELL,fy-CELL,CELL*2,CELL*2);
-        ctx.fillStyle = '#ff705d'; roundedRect(ctx,food.x*CELL+CELL*.22,food.y*CELL+CELL*.22,CELL*.56,CELL*.56,CELL*.18);
-        ctx.fillStyle = '#ffb2a3'; ctx.beginPath();ctx.arc(fx-CELL*.09,fy-CELL*.09,CELL*.075,0,Math.PI*2);ctx.fill();
-        // Snake: tail fades to brighter head.
-        snake.forEach((s,i) => {
-          const inset = i===0 ? 1.5 : 2.4;
-          const x=s.x*CELL+inset,y=s.y*CELL+inset,size=CELL-inset*2;
-          const t = Math.max(0,1-i/Math.max(1,snake.length));
-          const r = Math.round(111 + t*85), g = Math.round(151 + t*102), b = Math.round(52 + t*42);
-          ctx.fillStyle = `rgb(${r},${g},${b})`;
-          roundedRect(ctx,x,y,size,size,i===0?CELL*.26:CELL*.20);
-          if (i===0) {
-            // Eyes point in the direction of travel.
-            const perp = {x:-direction.y,y:direction.x};
-            const eyeForward = CELL*.12, eyeSide = CELL*.16;
-            const ex = (s.x+.5+direction.x*eyeForward/CELL)*CELL;
-            const ey = (s.y+.5+direction.y*eyeForward/CELL)*CELL;
-            ctx.fillStyle='#18200f';
-            for (const sign of [-1,1]) {
-              ctx.beginPath();ctx.arc(ex+perp.x*eyeSide*sign,ey+perp.y*eyeSide*sign,CELL*.055,0,Math.PI*2);ctx.fill();
-            }
-          } else if (i % 4 === 0) {
-            ctx.fillStyle = '#efffb72a'; roundedRect(ctx,x+CELL*.16,y+CELL*.16,size*.22,size*.22,CELL*.06);
-          }
-        });
-      }
-      function loop(timestamp) {
-        if (!running || paused) return;
-        if (!lastTime) lastTime = timestamp;
-        const delta = Math.min(timestamp - lastTime, 250); lastTime = timestamp;
-        accumulator += delta; pulse = Math.max(0,pulse-delta/230);
-        let interval = speed();
-        while (accumulator >= interval && running && !paused) { step(); accumulator -= interval; interval = speed(); }
-        draw();
-        if (running && !paused) requestAnimationFrame(loop);
-      }
-      function togglePause() {
-        if (over || !started) return;
-        if (!running && !paused) return;
-        if (paused) {
-          paused = false; running = true; lastTime = 0; pauseBtn.textContent = 'Ⅱ  Пауза';
-          overlay.classList.add('hidden'); requestAnimationFrame(loop);
-        } else {
-          paused = true; running = false; pauseBtn.textContent = '▶  Продолжить';
-          showOverlay('Ⅱ','Пауза','Переведи дух. Когда будешь готов — продолжай.','ПРОДОЛЖИТЬ  ▶');
-        }
-      }
-      function tone(freq, duration, type) {
-        if (!soundOn) return;
-        try {
-          audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-          if (audioCtx.state === 'suspended') audioCtx.resume();
-          const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
-          osc.type = type || 'sine'; osc.frequency.value = freq;
-          gain.gain.setValueAtTime(.055,audioCtx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+duration);
-          osc.connect(gain);gain.connect(audioCtx.destination);osc.start();osc.stop(audioCtx.currentTime+duration);
-        } catch (_) {}
-      }
-      mainBtn.addEventListener('click', () => {
-        if (paused) { togglePause(); return; }
-        startGame();
-      });
-      document.getElementById('restartBtn').addEventListener('click', () => { resetGame(); started = false; showOverlay('✳','Готов играть?','Собирай энергию, расти и не врезайся в стены или собственный хвост.','НАЧАТЬ ИГРУ  ↗'); });
-      pauseBtn.addEventListener('click', () => { if (!started && !over) startGame(); else togglePause(); });
-      document.querySelectorAll('[data-dir]').forEach(btn => {
-        btn.addEventListener('pointerdown', e => { e.preventDefault(); setDirection(btn.dataset.dir); });
-      });
-      soundBtn.addEventListener('click', () => {
-        soundOn = !soundOn;
-        soundBtn.textContent = soundOn ? '♫' : '♪';
-        soundBtn.style.color = soundOn ? 'var(--lime)' : 'var(--muted)';
-        soundBtn.setAttribute('aria-label', soundOn ? 'Выключить звук' : 'Включить звук');
-        if(soundOn) tone(520,.06,'sine');
-      });
-      document.addEventListener('keydown', e => {
-        const keys = {ArrowUp:'up',w:'up',W:'up',ArrowDown:'down',s:'down',S:'down',ArrowLeft:'left',a:'left',A:'left',ArrowRight:'right',d:'right',D:'right'};
-        if(keys[e.key]) { e.preventDefault(); setDirection(keys[e.key]); }
-        if(e.code === 'Space') { e.preventDefault(); if(!started && !over) startGame(); else togglePause(); }
-        if(e.key === 'Escape' && running) togglePause();
-      });
-      boardWrap.addEventListener('touchstart', e => {
-        if(e.changedTouches.length) touchStart = {x:e.changedTouches[0].clientX,y:e.changedTouches[0].clientY};
-      }, {passive:true});
-      boardWrap.addEventListener('touchend', e => {
-        if(!touchStart || !e.changedTouches.length) return;
-        const dx=e.changedTouches[0].clientX-touchStart.x, dy=e.changedTouches[0].clientY-touchStart.y;
-        touchStart=null;
-        if(Math.max(Math.abs(dx),Math.abs(dy))<18) return;
-        if(Math.abs(dx)>Math.abs(dy)) setDirection(dx>0?'right':'left');
-        else setDirection(dy>0?'down':'up');
-      }, {passive:true});
-      document.addEventListener('visibilitychange', () => { if(document.hidden && running) togglePause(); });
-      updateStats(); resetGame();
-    })();
-  </script>
+<main class="app">
+  <header class="topbar">
+    <div class="brand"><div class="logo">⚔</div><div><h1>ARENA BATTLE</h1><p>DESTROY ARTHUR</p></div></div>
+    <div class="record"><small>ТВОЙ РЕКОРД</small><strong id="bestScore">0</strong></div>
+  </header>
+  <section class="stats">
+    <div class="tower-stat enemy"><div class="label"><span>🏰 АРТУР</span><span id="enemyHpText">1200</span></div><div class="hp-track"><div class="hp-fill" id="enemyHpFill"></div></div></div>
+    <div class="vs">VS</div>
+    <div class="tower-stat player"><div class="label"><span>🛡 ТВОЯ БАШНЯ</span><span id="playerHpText">1200</span></div><div class="hp-track"><div class="hp-fill" id="playerHpFill"></div></div></div>
+  </section>
+  <section class="arena-wrap">
+    <canvas class="arena" id="arena" width="420" height="650" aria-label="Поле сражения"></canvas>
+    <div class="arena-tag">АРЕНА № 01 · КОРОЛЕВСКИЙ ДВОР</div>
+    <div class="overlay" id="overlay"><div class="modal"><div class="big" id="resultEmoji">🏆</div><h2 id="resultTitle">Победа!</h2><p id="resultText">Башня Артура пала.</p><button class="main-btn" id="playAgain">⚔ ЕЩЁ ОДИН БОЙ</button></div></div>
+  </section>
+  <div class="battle-note">Выбирай карту и выставляй бойца на одну из трёх линий.</div>
+  <div class="lane-label">ВЫБЕРИ ЛИНИЮ ВЫСАДКИ</div>
+  <section class="lanes">
+    <button class="lane-btn" data-lane="0">← ЛЕВАЯ</button><button class="lane-btn active" data-lane="1">ЦЕНТР</button><button class="lane-btn" data-lane="2">ПРАВАЯ →</button>
+  </section>
+  <section class="elixir-box"><div class="elixir-head"><div class="elixir-title">✦ ЭЛИКСИР</div><div class="elixir-value"><span id="elixirNum">5</span> / 10</div></div><div class="elixir-track" id="elixirPips"></div></section>
+  <section class="cards" aria-label="Карты войск">
+    <button class="card" data-card="knight"><span class="cost">3</span><span class="art">🗡️</span><span class="name">Рыцарь</span><span class="desc">Надёжный боец</span></button>
+    <button class="card" data-card="archer"><span class="cost">3</span><span class="art">🏹</span><span class="name">Лучник</span><span class="desc">Бьёт издалека</span></button>
+    <button class="card" data-card="giant"><span class="cost">5</span><span class="art">🪨</span><span class="name">Громила</span><span class="desc">Много здоровья</span></button>
+    <button class="card" data-card="fireball"><span class="cost">4</span><span class="art">🔥</span><span class="name">Файербол</span><span class="desc">Удар по башне</span></button>
+  </section>
+  <div class="bottom-row"><div class="hint" id="hint">Совет: громила принимает урон, лучник атакует на расстоянии.</div><button class="main-btn secondary" id="restartBtn">↻ ЗАНОВО</button></div>
+  <footer class="footer">MADE FOR THE ARTHUR TOWER CHALLENGE</footer>
+</main>
+<script>
+(() => {
+'use strict';
+const canvas = document.getElementById('arena');
+const ctx = canvas.getContext('2d');
+const W = 420, H = 650, lanes = [104, 210, 316];
+const $ = id => document.getElementById(id);
+const definitions = {
+  knight: {name:'Рыцарь',cost:3,hp:145,damage:25,speed:34,range:34,rate:0.78,radius:15,emoji:'⚔',color:'#b7c7e2',type:'melee'},
+  archer: {name:'Лучник',cost:3,hp:78,damage:17,speed:28,range:92,rate:0.95,radius:12,emoji:'🏹',color:'#a7df8c',type:'ranged'},
+  giant: {name:'Громила',cost:5,hp:340,damage:43,speed:18,range:38,rate:1.3,radius:20,emoji:'🪨',color:'#d9ae79',type:'tank'},
+  fireball: {name:'Файербол',cost:4}
+};
+let units, particles, elixir, enemyElixir, enemyTower, playerTower, selectedLane, elapsed, spawnTimer, towerTimers, gameOver, result, score, best, lastFrame, uiTimer, matchStarted;
+try { best = Number(localStorage.getItem('arthurTowerBest') || 0); } catch (_) { best = 0; }
+$('bestScore').textContent = best;
+for(let i=0;i<10;i++){const p=document.createElement('span');p.className='pip';$('elixirPips').appendChild(p);}
+function freshGame(){units=[];particles=[];elixir=5;enemyElixir=5;enemyTower={hp:1200,max:1200,flash:0};playerTower={hp:1200,max:1200,flash:0};selectedLane=1;elapsed=0;spawnTimer=3.4;towerTimers={p:0,e:0};gameOver=false;result='';score=0;lastFrame=0;uiTimer=0;matchStarted=true;$('overlay').classList.remove('show');$('hint').textContent='Совет: громила принимает урон, лучник атакует на расстоянии.';setLane(1);updateUI();}
+function setLane(n){selectedLane=n;document.querySelectorAll('.lane-btn').forEach(b=>b.classList.toggle('active',Number(b.dataset.lane)===n));}
+document.querySelectorAll('.lane-btn').forEach(b=>b.addEventListener('click',()=>setLane(Number(b.dataset.lane))));
+function makeUnit(owner,type,lane,y){const d=definitions[type];const enemy=owner==='e';return {id:Math.random().toString(36).slice(2),owner,type,lane,x:lanes[lane]+(Math.random()*8-4),y,hp:d.hp,maxHp:d.hp,damage:d.damage,speed:d.speed,range:d.range,rate:d.rate,radius:d.radius,emoji:d.emoji,color:enemy?'#ff8291':d.color,cooldown:0,flash:0};}
+function spawn(type,owner='p',lane=selectedLane){if(gameOver)return;const cost=definitions[type].cost;if(owner==='p'){if(elixir<cost){$('hint').textContent='Не хватает эликсира. Подожди немного!';return;}elixir-=cost;}else{if(enemyElixir<cost)return;enemyElixir-=cost;lane=Math.floor(Math.random()*3);}if(type==='fireball'){if(owner==='p'){const hit=125;enemyTower.hp=Math.max(0,enemyTower.hp-hit);enemyTower.flash=.45;score+=hit;particles.push({kind:'boom',x:210,y:104,life:.75,max:.75,color:'#ff9a52',size:52});let hits=0;units.forEach(u=>{if(u.owner==='e'&&u.y<210){u.hp-=72;u.flash=.2;hits++;}});particles.push({kind:'text',x:210,y:150,life:1,max:1,text:'−125',color:'#ffbe73'});$('hint').textContent='Файербол попал по башне Артура!';checkEnd();}return;}units.push(makeUnit(owner,type,lane,owner==='p'?568:124));particles.push({kind:'ring',x:lanes[lane],y:owner==='p'?568:124,life:.32,max:.32,color:owner==='p'?'#c7f36b':'#ff708c',size:31});if(owner==='p')$('hint').textContent=definitions[type].name+' на линии '+['слева','по центру','справа'][lane]+'. Вперёд!';}
+document.querySelectorAll('.card').forEach(b=>b.addEventListener('click',()=>spawn(b.dataset.card)));
+$('restartBtn').addEventListener('click',freshGame);$('playAgain').addEventListener('click',freshGame);
+function hitUnit(u,amount){u.hp-=amount;u.flash=.12;particles.push({kind:'dot',x:u.x+(Math.random()*12-6),y:u.y+(Math.random()*12-6),life:.22,max:.22,color:u.owner==='p'?'#ffdc8a':'#ff9aa8',size:4});}
+function attackTower(u,tower){u.cooldown=u.rate;if(tower.hp<=0)return;tower.hp=Math.max(0,tower.hp-u.damage);tower.flash=.17;particles.push({kind:'text',x:u.x,y:u.owner==='p'?92:602,life:.6,max:.6,text:'-'+u.damage,color:u.owner==='p'?'#d9ff8b':'#ff9dad'});if(u.owner==='p')score+=u.damage;checkEnd();}
+function checkEnd(){if(gameOver)return;if(enemyTower.hp<=0||playerTower.hp<=0){gameOver=true;result=enemyTower.hp<=0?'win':'lose';if(score>best){best=score;try{localStorage.setItem('arthurTowerBest',String(best));}catch(_){}}$('resultEmoji').textContent=result==='win'?'🏆':'💥';$('resultTitle').textContent=result==='win'?'АРТУР ПОВЕРЖЕН!':'ТВОЯ БАШНЯ ПАЛА';$('resultText').textContent=result==='win'?'Ты уничтожил башню Артура за '+formatTime(elapsed)+'. Хороший бой!':'Артур оказался сильнее в этот раз. Собери другую колоду и попробуй ещё.';$('overlay').classList.add('show');$('bestScore').textContent=best;}}
+function formatTime(t){const m=Math.floor(t/60),s=Math.floor(t%60);return m+':'+String(s).padStart(2,'0');}
+function update(dt){if(gameOver)return;elapsed+=dt;elixir=Math.min(10,elixir+dt*.72);enemyElixir=Math.min(10,enemyElixir+dt*.7);enemyTower.flash=Math.max(0,enemyTower.flash-dt);playerTower.flash=Math.max(0,playerTower.flash-dt);
+  spawnTimer-=dt;if(spawnTimer<=0){const available=['knight','archer','giant'].filter(k=>enemyElixir>=definitions[k].cost);if(available.length){const weights=available.includes('giant')&&Math.random()<.26?'giant':available[Math.floor(Math.random()*available.length)];spawn(weights,'e');}spawnTimer=3.6+Math.random()*2.3;}
+  // Towers keep their side of the arena clear.
+  towerTimers.p-=dt;towerTimers.e-=dt;
+  if(towerTimers.p<=0){const target=units.filter(u=>u.owner==='e'&&u.y>520).sort((a,b)=>b.y-a.y)[0];if(target){hitUnit(target,23);towerTimers.p=.72;particles.push({kind:'beam',x:210,y:608,tx:target.x,ty:target.y,life:.13,max:.13,color:'#c7f36b'});}}
+  if(towerTimers.e<=0){const target=units.filter(u=>u.owner==='p'&&u.y<170).sort((a,b)=>a.y-b.y)[0];if(target){hitUnit(target,21);towerTimers.e=.72;particles.push({kind:'beam',x:210,y:48,tx:target.x,ty:target.y,life:.13,max:.13,color:'#ff8094'});}}
+  for(const u of units){u.cooldown=Math.max(0,u.cooldown-dt);u.flash=Math.max(0,u.flash-dt);if(u.hp<=0)continue;
+    const enemies=units.filter(v=>v.owner!==u.owner&&v.lane===u.lane&&v.hp>0&&Math.abs(v.y-u.y)<(u.type==='archer'?112:52));
+    let target=null,minDist=Infinity;for(const v of enemies){const d=Math.abs(v.y-u.y);if(d<minDist){minDist=d;target=v;}}
+    if(target&&minDist<=u.range+u.radius+target.radius){if(u.cooldown<=0){hitUnit(target,u.damage);u.cooldown=u.rate;particles.push({kind:u.type==='archer'?'arrow':'slash',x:u.x,y:u.y,tx:target.x,ty:target.y,life:.16,max:.16,color:u.owner==='p'?'#d7f7a4':'#ffb0b9'});}continue;}
+    if(target&&minDist<Math.max(56,u.range)){// close enough to engage; step toward the target
+      u.y+=Math.sign(target.y-u.y)*Math.min(Math.abs(target.y-u.y)-Math.min(u.range,28),u.speed*dt);continue;
+    }
+    const direction=u.owner==='p'?-1:1;
+    const towerZone=u.owner==='p'?u.y<=110:u.y>=590;
+    if(towerZone){if(u.cooldown<=0)attackTower(u,u.owner==='p'?enemyTower:playerTower);}
+    else{u.y+=direction*u.speed*dt;if(u.y<95)u.y=95;if(u.y>610)u.y=610;}
+  }
+  units=units.filter(u=>u.hp>0&&u.y>-30&&u.y<H+30);
+  for(const p of particles)p.life-=dt;particles=particles.filter(p=>p.life>0);
+  uiTimer-=dt;if(uiTimer<=0){updateUI();uiTimer=.12;}
+}
+function updateUI(){$('enemyHpText').textContent=Math.ceil(enemyTower.hp);$('playerHpText').textContent=Math.ceil(playerTower.hp);$('enemyHpFill').style.width=(enemyTower.hp/enemyTower.max*100)+'%';$('playerHpFill').style.width=(playerTower.hp/playerTower.max*100)+'%';$('elixirNum').textContent=Math.floor(elixir);[...$('elixirPips').children].forEach((p,i)=>p.classList.toggle('on',i<Math.floor(elixir)));document.querySelectorAll('.card[data-card]').forEach(b=>{const c=definitions[b.dataset.card].cost;b.disabled=gameOver||elixir<c;});$('bestScore').textContent=best;}
+function roundedRect(c,x,y,w,h,r){c.beginPath();c.roundRect(x,y,w,h,r);}
+function drawBackground(){ctx.clearRect(0,0,W,H);const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#31574a');g.addColorStop(.46,'#3b6a50');g.addColorStop(.54,'#3b6a50');g.addColorStop(1,'#345943');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  // Grass tile texture
+  for(let y=4;y<H;y+=28)for(let x=4;x<W;x+=28){const n=((x*7+y*11)%13);ctx.fillStyle=n>8?'#ffffff08':'#0b1e1407';ctx.fillRect(x+(n%4),y,13,2);}
+  // River and banks
+  ctx.fillStyle='#c3ac76';ctx.fillRect(0,310,W,28);ctx.fillStyle='#5c9aa1';ctx.fillRect(0,315,W,19);ctx.fillStyle='#a9d9d0';for(let x=8;x<W;x+=46){ctx.fillRect(x,319,24,2);ctx.fillRect(x+14,327,15,1);}
+  for(const x of lanes){ctx.fillStyle='#c9a66a';roundedRect(ctx,x-26,304,52,40,5);ctx.fill();ctx.strokeStyle='#8d714c';ctx.lineWidth=2;for(let y=308;y<342;y+=8){ctx.beginPath();ctx.moveTo(x-24,y);ctx.lineTo(x+24,y);ctx.stroke();}}
+  // Lane markers
+  ctx.setLineDash([4,8]);ctx.strokeStyle='#d9f0cc20';ctx.lineWidth=2;for(const x of lanes){ctx.beginPath();ctx.moveTo(x,110);ctx.lineTo(x,300);ctx.moveTo(x,350);ctx.lineTo(x,565);ctx.stroke();}ctx.setLineDash([]);
+  // Decorative shrubs
+  for(const [x,y] of [[22,160],[390,190],[34,482],[386,462],[74,235],[350,390]]){ctx.fillStyle='#214c3c';ctx.beginPath();ctx.arc(x,y,10,0,Math.PI*2);ctx.fill();ctx.fillStyle='#52805b';ctx.beginPath();ctx.arc(x-3,y-4,7,0,Math.PI*2);ctx.fill();}
+  // deployment line
+  ctx.strokeStyle='#d2fa8b55';ctx.lineWidth=1;ctx.setLineDash([5,5]);ctx.beginPath();ctx.moveTo(24,550);ctx.lineTo(396,550);ctx.stroke();ctx.setLineDash([]);
+  if(!gameOver){ctx.fillStyle='#d8f2ba88';ctx.font='900 9px system-ui';ctx.textAlign='center';ctx.fillText('ТВОЯ ТЕРРИТОРИЯ',210,535);ctx.fillStyle='#ffb5c188';ctx.fillText('ТЕРРИТОРИЯ АРТУРА',210,145);}
+}
+function drawTower(y,enemy,hp,max,flash){const x=210;const baseY=enemy?y+58:y-58;ctx.save();ctx.translate(x,baseY);ctx.fillStyle='#0004';roundedRect(ctx,-64, -5,128,25,9);ctx.fill();
+  const stone=enemy?'#914e5d':'#657eab',light=enemy?'#d77c88':'#a8c8e8',dark=enemy?'#633646':'#354965';
+  // broad castle body
+  ctx.fillStyle=dark;roundedRect(ctx,-49,-42,98,66,9);ctx.fill();ctx.fillStyle=stone;roundedRect(ctx,-43,-48,86,66,8);ctx.fill();
+  // crenellations
+  for(let i=0;i<5;i++){ctx.fillStyle=light;roundedRect(ctx,-43+i*18,-57,13,20,3);ctx.fill();}
+  // central roof/tower
+  ctx.fillStyle=dark;ctx.beginPath();ctx.moveTo(-25,-48);ctx.lineTo(0,-78);ctx.lineTo(25,-48);ctx.closePath();ctx.fill();ctx.fillStyle=light;ctx.beginPath();ctx.moveTo(-19,-49);ctx.lineTo(0,-72);ctx.lineTo(19,-49);ctx.closePath();ctx.fill();
+  // windows + gate
+  ctx.fillStyle='#202b3a';roundedRect(ctx,-26,-30,10,17,4);ctx.fill();roundedRect(ctx,16,-30,10,17,4);ctx.fill();ctx.fillStyle=enemy?'#4b2633':'#24364c';ctx.beginPath();ctx.arc(0,7,15,Math.PI,0);ctx.lineTo(15,22);ctx.lineTo(-15,22);ctx.closePath();ctx.fill();
+  ctx.fillStyle=enemy?'#ffcf8b':'#d9fca6';ctx.font='900 10px system-ui';ctx.textAlign='center';ctx.fillText(enemy?'A':'★',0,-42);
+  if(flash>0){ctx.globalAlpha=flash*2;ctx.fillStyle='#fff';roundedRect(ctx,-43,-48,86,66,8);ctx.fill();ctx.globalAlpha=1;}
+  // name plate
+  const label=enemy?'АРТУР':'ТЫ';ctx.fillStyle='#0d1524e8';roundedRect(ctx,-54,-94,108,20,7);ctx.fill();ctx.strokeStyle=enemy?'#f08294':'#c7f36b';ctx.lineWidth=1;ctx.stroke();ctx.fillStyle=enemy?'#ffadb9':'#d9ff9e';ctx.font='1000 10px system-ui';ctx.fillText(label,0,-80);
+  // compact hp bar
+  ctx.fillStyle='#182031';roundedRect(ctx,-44,31,88,7,4);ctx.fill();ctx.fillStyle=enemy?'#ff6d89':'#c7f36b';roundedRect(ctx,-42,33,84*Math.max(0,hp/max),3,2);ctx.fill();
+  ctx.restore();}
+function drawUnit(u){ctx.save();const x=u.x,y=u.y,r=u.radius;ctx.fillStyle='#0a121c55';ctx.beginPath();ctx.ellipse(x,y+r+5,r*1.15,r*.5,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=u.owner==='p'?'#365331':'#773644';ctx.beginPath();ctx.arc(x,y,r+3,0,Math.PI*2);ctx.fill();ctx.fillStyle=u.flash>0?'#fff':u.color;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();ctx.strokeStyle=u.owner==='p'?'#d8ff9b':'#ffbac3';ctx.lineWidth=2;ctx.stroke();ctx.font=(u.type==='giant'?'20':'17')+'px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(u.emoji,x,y+1);
+  // health bar
+  ctx.fillStyle='#111827';roundedRect(ctx,x-r-5,y-r-10,(r+5)*2,5,3);ctx.fill();ctx.fillStyle=u.owner==='p'?'#bdf36a':'#ff7890';roundedRect(ctx,x-r-4,y-r-9,(r+3)*2*Math.max(0,u.hp/u.maxHp),3,2);ctx.fill();ctx.restore();}
+function drawParticles(){for(const p of particles){const a=Math.max(0,p.life/p.max);ctx.save();ctx.globalAlpha=a;if(p.kind==='text'){ctx.fillStyle=p.color;ctx.font='1000 13px system-ui';ctx.textAlign='center';ctx.fillText(p.text,p.x,p.y-(1-a)*23);}else if(p.kind==='dot'){ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,p.size*a,0,Math.PI*2);ctx.fill();}else if(p.kind==='ring'||p.kind==='boom'){ctx.strokeStyle=p.color;ctx.lineWidth=p.kind==='boom'?5:3;ctx.beginPath();ctx.arc(p.x,p.y,p.size*(1-a*.55),0,Math.PI*2);ctx.stroke();if(p.kind==='boom'){ctx.fillStyle='#ffac5344';ctx.beginPath();ctx.arc(p.x,p.y,p.size*(1-a)*.8,0,Math.PI*2);ctx.fill();}}else if(p.kind==='beam'||p.kind==='arrow'||p.kind==='slash'){ctx.strokeStyle=p.color;ctx.lineWidth=p.kind==='beam'?3:2;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.tx,p.ty);ctx.stroke();}ctx.restore();}}
+function drawHud(){// selected lane reticle
+  const x=lanes[selectedLane];ctx.save();ctx.globalAlpha=.85;ctx.strokeStyle='#d8ff8c';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-13,552);ctx.lineTo(x-13,565);ctx.lineTo(x+13,565);ctx.lineTo(x+13,552);ctx.stroke();ctx.fillStyle='#e7ffc0';ctx.beginPath();ctx.moveTo(x,542);ctx.lineTo(x-5,535);ctx.lineTo(x+5,535);ctx.closePath();ctx.fill();ctx.restore();
+  if(!gameOver){ctx.fillStyle='#f5f8e9';ctx.font='900 11px system-ui';ctx.textAlign='center';ctx.fillText(formatTime(elapsed),210,18);}}
+function draw(){drawBackground();drawTower(94,true,enemyTower.hp,enemyTower.max,enemyTower.flash);drawTower(623,false,playerTower.hp,playerTower.max,playerTower.flash);for(const u of units.slice().sort((a,b)=>a.y-b.y))drawUnit(u);drawParticles();drawHud();}
+function frame(ts){if(!lastFrame)lastFrame=ts;const dt=Math.min((ts-lastFrame)/1000,.04);lastFrame=ts;if(matchStarted&&!gameOver)update(dt);draw();requestAnimationFrame(frame);}
+// Keep the canvas crisp on high-density mobile screens while preserving logical coordinates.
+function resizeCanvas(){const dpr=Math.min(window.devicePixelRatio||1,2);canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);}
+window.addEventListener('resize',resizeCanvas);resizeCanvas();freshGame();requestAnimationFrame(frame);
+// Keyboard controls are handy on desktop; touch controls are the card and lane buttons.
+window.addEventListener('keydown',e=>{if(e.key==='1')spawn('knight');if(e.key==='2')spawn('archer');if(e.key==='3')spawn('giant');if(e.key==='4')spawn('fireball');if(e.key==='ArrowLeft')setLane(Math.max(0,selectedLane-1));if(e.key==='ArrowRight')setLane(Math.min(2,selectedLane+1));if(e.key.toLowerCase()==='r')freshGame();});
+})();
+</script>
 </body>
 </html>
